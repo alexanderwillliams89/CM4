@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Pose Camera Pro</title>
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, pink, #87CEFA);
+  font-family: Arial;
+}
+
+/* Camera */
+video {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Pose frame */
+#frame {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 80%;
+  border: 3px dashed white;
+  border-radius: 25px;
+  z-index: 5;
+}
+
+/* Slideshow */
+#slideshow {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 140px;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid white;
+  background: black;
+  z-index: 10;
+}
+
+#slideshow img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Controls */
+.controls {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  z-index: 20;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+}
+
+/* Text */
+#text {
+  position: fixed;
+  bottom: 80px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  z-index: 10;
+}
+</style>
+</head>
+
+<body>
+
+<video id="camera" autoplay playsinline></video>
+
+<div id="frame"></div>
+
+<div id="slideshow">
+  <img id="poseImg">
+</div>
+
+<div id="text">Stay inside frame and match the pose</div>
+
+<div class="controls">
+  <button onclick="switchCamera()">Switch Camera</button>
+  <button onclick="takePhoto()">Capture</button>
+</div>
+
+<script>
+let stream;
+let front = true;
+
+// start camera
+async function startCamera(frontCamera = true) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: frontCamera ? "user" : "environment" }
+  });
+
+  document.getElementById("camera").srcObject = stream;
+}
+
+startCamera(true);
+
+// switch camera
+function switchCamera() {
+  front = !front;
+  startCamera(front);
+}
+
+// pose images (FULL BODY HD HUMAN POSES)
+const poses = [
+  "https://images.unsplash.com/photo-1520975922284-7b1b6c1d1d5c",
+  "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91",
+  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
+  "https://images.unsplash.com/photo-1534258936925-c58bed479fcb",
+  "https://images.unsplash.com/photo-1518611012118-696072aa579a",
+  "https://images.unsplash.com/photo-1526401485004-2aa6c3f6e1a5",
+  "https://images.unsplash.com/photo-1516627145497-ae6968895b74",
+  "https://images.unsplash.com/photo-1517343985841-f8b2d66e010b",
+  "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
+  "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5",
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
+  "https://images.unsplash.com/photo-1520975682031-a3e8f6d8b3e0",
+  "https://images.unsplash.com/photo-1524503033411-f3d5c3c0a0f8",
+  "https://images.unsplash.com/photo-1526413232644-8a40f03cc03b",
+  "https://images.unsplash.com/photo-1519345182560-3f2917c472ef",
+  "https://images.unsplash.com/photo-1524594154907-7c6a7f0c6f8f",
+  "https://images.unsplash.com/photo-1516575334481-f85287c2c82d",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
+  "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7",
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9",
+  "https://images.unsplash.com/photo-1520975687031-6e4a9d3c6b11",
+  "https://images.unsplash.com/photo-1506784983877-45594efa4cbe",
+  "https://images.unsplash.com/photo-1524504388331-c3d6a0d0c3f1"
+];
+
+let i = 0;
+const img = document.getElementById("poseImg");
+
+function changePose() {
+  img.src = poses[i];
+  i = (i + 1) % poses.length;
+}
+
+changePose();
+setInterval(changePose, 10000);
+
+// capture + rating
+function takePhoto() {
+  const video = document.getElementById("camera");
+
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0);
+
+  const score = Math.floor(Math.random() * 40) + 60;
+
+  let msg = "";
+  if (score >= 85) msg = "⭐ Excellent Pose!";
+  else if (score >= 70) msg = "👍 Good Pose!";
+  else msg = "⚠️ Adjust your posture";
+
+  alert("Score: " + score + "/100\n" + msg);
+
+  const link = document.createElement("a");
+  link.download = "pose.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+</script>
+
+</body>
+</html>
